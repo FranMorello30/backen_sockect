@@ -8,6 +8,6 @@ export class Usuario
     {
         this.id = id;
         this.nombre = 'sin-nombre';
-        this.sala = 'son-sala';
+        this.sala = 'sin-sala';
     }
 }
