@@ -2,8 +2,38 @@ import { Socket } from 'socket.io';
 import socketIO from 'socket.io';
 import { UsuariosLista } from '../class/usuarios-lista';
 import { Usuario } from '../class/usuario';
+import { Mapa } from '../class/mapa';
+import { Marcador } from '../class/marcador';
 
 export const usuariosConectados = new UsuariosLista();
+export const mapa = new Mapa();
+
+// Mapa
+export const mapaSockets = (cliente:Socket,io:socketIO.Server) =>
+{
+    cliente.on('marcador-nuevo',(marcador:Marcador)=>{
+        
+        mapa.agregarMarcador(marcador);
+
+        cliente.broadcast.emit('marcador-nuevo',marcador);
+    })
+
+    cliente.on('marcador-borrar',(id:string)=>{
+        
+        mapa.borraMarcador(id);
+
+        cliente.broadcast.emit('marcador-borrar',id);
+    })
+    cliente.on('marcador-mover',(marcador:Marcador)=>{
+        
+        mapa.moverMarcador(marcador);
+
+        cliente.broadcast.emit('marcador-mover',marcador);
+    })
+}
+
+
+
 
 export const conectarCliente = (cliente:Socket,io:socketIO.Server) =>
 {

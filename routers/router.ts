@@ -1,15 +1,59 @@
 import { Router,Request,Response } from 'express';
+import { getPacientes,actPaciente,citaPaciente } from '../controllers/pacientes';
+import { loginUsuario,crearUsuario } from '../controllers/auth';
+
 import Server from '../class/server';
-import { usuariosConectados } from '../sockets/socket';
+//import { usuariosConectados,mapa } from '../sockets/socket';
+//import { GraficaData } from '../class/grafica';
+//import { EncuestaData } from '../class/encuesta';
+//import { Mapa } from '../class/mapa';
+
+import { check } from 'express-validator';
+import { validarCampos } from '../middlewares/validar-campos';
+import { validarJWT } from '../middlewares/validar-jwt';
 
 const router = Router();
 
-router.get('/mensajes', (req:Request,res:Response ) => 
+//const grafica = new GraficaData();
+//const encuesta = new EncuestaData();
+
+
+/*
+router.get('/mapa', (req:Request,res:Response ) => 
 {
-    res.json({
-        ok:true,
-        mensaje:'Todo esta bien'
-    })
+    res.json(mapa.getMarcadores());
+});
+router.get('/encuesta', (req:Request,res:Response ) => 
+{
+    res.json(encuesta.getDataEncuesta())
+});
+router.post('/encuesta', (req:Request,res:Response ) => 
+{
+    const pos = Number(req.body.posicion);
+    const unidades = Number(req.body.voto);
+
+    encuesta.incremetarValor(pos,unidades)
+    
+    const server = Server.instance;
+    server.io.emit('cambio-encuesta',encuesta.getDataEncuesta());
+
+    res.json(encuesta.getDataEncuesta())
+});
+router.get('/grafica', (req:Request,res:Response ) => 
+{
+    res.json(grafica.getDataGrafica())
+});
+router.post('/grafica', (req:Request,res:Response ) => 
+{
+    const mes = req.body.mes;
+    const unidades = Number(req.body.unidades);
+
+    grafica.incremetarValor(mes,unidades)
+    
+    const server = Server.instance;
+    server.io.emit('cambio-grafica',grafica.getDataGrafica());
+
+    res.json(grafica.getDataGrafica())
 });
 router.post('/mensajes', (req:Request,res:Response ) => 
 {
@@ -52,7 +96,6 @@ router.post('/mensajes/:id', (req:Request,res:Response ) =>
         id
     })
 });
-
 // servicio para obtener todos los id de los usuarios
 router.get('/usuarios', (req:Request,res:Response ) => 
 {
@@ -70,18 +113,57 @@ router.get('/usuarios', (req:Request,res:Response ) =>
             err
         })
     });
-});
+});*/
 
-// servicio para obtener  usuarios y sus nombres
-router.get('/usuarios/detalle', (req:Request,res:Response ) => 
-{
-    
-    res.json({
-        ok:false,
-        clientes:usuariosConectados.getLista()
-    })
+//login usuarios
+router.post('/auth',
+    [
+        check('email','el correo es obligatorio').isEmail(),
+        check('password','la contraseña es obligatoria').not().isEmpty(),
+        validarCampos
+    ],
+    loginUsuario
+);
+//crear nuevo usuario
+router.post('/crear-usuario',
+    [
+        check('nombre','el nombre es obligatorio').not().isEmpty(),
+        check('email','el correo es obligatorio').isEmail(),
+        check('password','la contraseña es obligatoria').not().isEmpty(),
+        validarCampos
+    ],
+    crearUsuario
+);
+// obtener todos los pacientes
+router.get('/lista-pacientes',
+    [
+        validarJWT
+    ],
+    getPacientes
+);
+//actualizar paciente
+router.post('/actualizar-paciente',
+    [
+        validarJWT,
+        check('rut','el rut es obligatorio').not().isEmpty(),
+        check('email','el correo es obligatorio').isEmail(),
+        check('password','la contraseña es obligatoria').not().isEmpty(),
+        validarCampos
+    ],
+    actPaciente
+);
 
-});
+router.put('/cita-paciente/:idPaciente',
+    [
+        validarJWT,
+
+        check('fecha','la fecha es obligatorio').not().isEmpty(),
+        check('confCita','estado cita es obligatorio').not().isEmpty(),
+        
+        validarCampos
+    ],
+    citaPaciente
+);
 
 export default router
 
